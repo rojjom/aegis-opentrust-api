@@ -7,8 +7,14 @@ app.use(express.json({ limit: "1mb" }));
 
 const ALLOWED_ORIGINS = [
   "https://www.aegisopentrust.com",
-  "https://aegisopentrust.com"
+  "https://aegisopentrust.com",
+
+  // === DEV / TEST (ชั่วคราว) ===
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:3000"
 ];
+
 
 app.use(cors({
   origin: function(origin, cb) {
@@ -111,3 +117,4 @@ app.post("/evaluate", (req, res) => {
 
 const PORT = process.env.PORT || 8787;
 app.listen(PORT, () => console.log("AEGIS API listening on", PORT));
+
