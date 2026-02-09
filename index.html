@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>A.E.G.I.S OpenTRUST — Evaluation Console</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#0f1730; --panel2:#0c142b;
+      --text:#e8edf7; --muted:#9fb0d0; --line:#1c2a52;
+      --gold:#d6b56d; --good:#4ade80; --warn:#fbbf24; --bad:#fb7185;
+      --chip:#121d3a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;background:var(--bg);color:var(--text)}
+    a{color:var(--gold);text-decoration:none}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#111a35,#0b1020);
+      display:grid;place-items:center;color:var(--gold);font-weight:800;
+      letter-spacing:.5px;
+    }
+    .brand h1{margin:0;font-size:18px}
+    .brand .sub{margin:0;color:var(--muted);font-size:12px}
+    .nav{display:flex;gap:10px;flex-wrap:wrap}
+    .nav a{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.02)}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h2{margin:0 0 10px 0;font-size:15px}
+    .hint{color:var(--muted);font-size:12px;line-height:1.5}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+    input,select,textarea{
+      width:100%;
+      background:var(--panel2);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:90px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:680px){.row{grid-template-columns:1fr}}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:var(--chip);border:1px solid var(--line);padding:8px 10px;border-radius:999px;font-size:12px;color:var(--text)}
+    .radio{display:flex;gap:10px;flex-wrap:wrap}
+    .radio label{margin:0}
+    .radio .opt{
+      display:flex;align-items:center;gap:8px;
+      background:var(--panel2);border:1px solid var(--line);
+      padding:8px 10px;border-radius:14px;cursor:pointer;
+      user-select:none;
+    }
+    .radio input{width:auto}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      border:none;border-radius:14px;padding:10px 12px;
+      cursor:pointer;font-weight:700;
+      background:var(--panel);color:var(--text);
+      border:1px solid var(--line);
+    }
+    button.primary{
+      background:linear-gradient(180deg,rgba(214,181,109,.18),rgba(214,181,109,.06));
+      border:1px solid rgba(214,181,109,.35);
+      color:var(--text);
+    }
+    button.danger{border:1px solid rgba(251,113,133,.4);background:rgba(251,113,133,.08)}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+    .linkRow{display:grid;grid-template-columns:1fr auto;gap:8px}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      border-radius:999px;padding:8px 10px;font-size:12px;
+      border:1px solid var(--line);background:rgba(255,255,255,.02);
+      color:var(--muted);
+    }
+    .pill b{color:var(--text);font-weight:800}
+    .warnBox{
+      margin-top:10px;border-radius:14px;padding:10px 12px;
+      background:rgba(251,191,36,.08);
+      border:1px solid rgba(251,191,36,.25);
+      color:var(--text);font-size:12px;
+    }
+    .okBox{
+      margin-top:10px;border-radius:14px;padding:10px 12px;
+      background:rgba(74,222,128,.08);
+      border:1px solid rgba(74,222,128,.22);
+      color:var(--text);font-size:12px;
+    }
+    .divider{height:1px;background:var(--line);margin:12px 0}
+    .kpi{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    @media (max-width:680px){.kpi{grid-template-columns:1fr}}
+    .kpi .box{border:1px solid var(--line);border-radius:16px;padding:10px;background:rgba(255,255,255,.02)}
+    .kpi .box .t{font-size:12px;color:var(--muted)}
+    .kpi .box .v{font-size:18px;font-weight:900;margin-top:4px}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      font-size:12px;color:var(--text)
+    }
+    .badge.good{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)}
+    .badge.warn{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08)}
+    .badge.bad{border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.08)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;color:var(--muted)}
+    .small{font-size:12px;color:var(--muted);line-height:1.5}
+    .footer{margin-top:12px;color:var(--muted);font-size:11px;line-height:1.5}
+    .toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+      background:rgba(15,23,48,.95);border:1px solid var(--line);
+      color:var(--text);padding:10px 12px;border-radius:14px;
+      font-size:12px;display:none;max-width:92vw
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">A</div>
+      <div>
+        <h1>A.E.G.I.S OpenTRUST</h1>
+        <p class="sub">Trust Evaluation Console — Public Usage Policy Gate (Offline-ready)</p>
+      </div>
+    </div>
+    <div class="nav">
+      <a href="#policy">Policy</a>
+      <a href="#how">How it works</a>
+      <a href="#result">Result</a>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: INPUT -->
+    <div class="card">
+      <h2>1) New Evaluation</h2>
+      <p class="hint">กรอกข้อมูล → ผ่าน Policy Gate → กด Run Evaluation</p>
+
+      <label>SUBJECT TYPE</label>
+      <select id="subjectType">
+        <option value="news">ข่าว/บทความ</option>
+        <option value="social_post">โพสต์โซเชียล</option>
+        <option value="website">เว็บไซต์</option>
+        <option value="organization">องค์กร/โครงการ</option>
+        <option value="token">โทเคน/DeFi</option>
+        <option value="document">เอกสาร/ประกาศ</option>
+        <option value="other">อื่นๆ</option>
+      </select>
+
+      <label>TITLE / หัวข้อ</label>
+      <input id="title" placeholder="เช่น: ข้อความอ้างว่า... / ชื่อโพสต์ / ชื่อโครงการ" />
+
+      <label>CLAIM TEXT (สิ่งที่อ้าง)</label>
+      <textarea id="claimText" placeholder="สรุปข้อกล่าวอ้างหลัก 1–3 ประโยค (ยิ่งชัดยิ่งดี)"></textarea>
+
+      <div class="row">
+        <div>
+          <label>GOAL</label>
+          <div class="radio" role="radiogroup" aria-label="goal">
+            <label class="opt"><input type="radio" name="goal" value="verify" checked /> verify</label>
+            <label class="opt"><input type="radio" name="goal" value="decide" /> decide</label>
+            <label class="opt"><input type="radio" name="goal" value="compare" /> compare</label>
+            <label class="opt"><input type="radio" name="goal" value="predict" /> predict</label>
+          </div>
+        </div>
+        <div>
+          <label>AS-OF DATE</label>
+          <input id="asOfDate" type="date" />
+        </div>
+      </div>
+
+      <label>EVIDENCE LINKS</label>
+      <div class="list" id="linksList"></div>
+      <div class="linkRow">
+        <input id="newLink" placeholder="วางลิงก์หลักฐาน (https://...)" />
+        <button id="addLinkBtn" type="button">+ เพิ่ม</button>
+      </div>
+
+      <label>Evidence Quote (optional)</label>
+      <textarea id="quoteText" placeholder="คัดข้อความหลักฐานสำคัญ (ถ้ามี)"></textarea>
+
+      <div class="divider"></div>
+
+      <h2 id="policy">2) Safety & Policy Gate</h2>
+      <p class="hint">ต้องติ๊กให้ครบก่อนประเมิน (เพื่อปกป้องผู้ใช้และแบรนด์)</p>
+
+      <div class="chips">
+        <span class="chip">✅ ประเมินความน่าเชื่อถือ (ไม่ฟันธงความจริง)</span>
+        <span class="chip">✅ ไม่ใช่คำแนะนำ กฎหมาย/การเงิน/แพทย์</span>
+        <span class="chip">✅ ห้ามใช้เพื่อโจมตี/ทำลายชื่อเสียง</span>
+      </div>
+
+      <div style="margin-top:10px">
+        <label class="opt" style="display:flex;align-items:flex-start;gap:10px">
+          <input id="ackLimits" type="checkbox" style="margin-top:2px" />
+          <span><b>ยืนยัน:</b> เข้าใจว่า AEGIS ประเมิน “ความน่าเชื่อถือ” ไม่ใช่ผู้ตัดสินความจริง</span>
+        </label>
+        <label class="opt" style="display:flex;align-items:flex-start;gap:10px;margin-top:8px">
+          <input id="ackNoAdvice" type="checkbox" style="margin-top:2px" />
+          <span><b>ยืนยัน:</b> ไม่ใช่คำแนะนำทางกฎหมาย/การเงิน/การแพทย์</span>
+        </label>
+        <label class="opt" style="display:flex;align-items:flex-start;gap:10px;margin-top:8px">
+          <input id="ackNoHarass" type="checkbox" style="margin-top:2px" />
+          <span><b>ยืนยัน:</b> จะไม่ใช้ผลลัพธ์เพื่อโจมตีหรือทำลายชื่อเสียง</span>
+        </label>
+      </div>
+
+      <div id="autoWarning" class="warnBox" style="display:none"></div>
+      <div id="autoOk" class="okBox" style="display:none"></div>
+
+      <div class="btns">
+        <button class="primary" id="runBtn" type="button" disabled>Run Evaluation</button>
+        <button id="saveBtn" type="button">Save Draft</button>
+        <button class="danger" id="resetBtn" type="button">Reset</button>
+      </div>
+
+      <div class="footer" id="how">
+        <b>How it works (ย่อมาก):</b> ระบบจะสร้าง “Case Input JSON” → ตรวจ Policy Gate → ประเมิน (Offline mock หรือเรียก API) → สร้างผลลัพธ์ + สรุปแชร์
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULT -->
+    <div class="card" id="result">
+      <h2>3) Result</h2>
+      <p class="hint">ผลลัพธ์เป็นการประเมินเชิงความเชื่อมั่น ไม่ใช่ข้อสรุปเด็ดขาด</p>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="t">Verdict</div>
+          <div class="v" id="verdictText">—</div>
+          <div class="small" id="verdictNote"></div>
+        </div>
+        <div class="box">
+          <div class="t">DRI / Tier</div>
+          <div class="v" id="driText">—</div>
+          <div class="small" id="tierText"></div>
+        </div>
+        <div class="box">
+          <div class="t">Confidence</div>
+          <div class="v" id="confText">—</div>
+          <div class="small" id="eviFreshText"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <span class="badge" id="bEvidence">Evidence: —</span>
+        <span class="badge" id="bFresh">Freshness: —</span>
+        <span class="badge" id="bPolicy">Policy: —</span>
+      </div>
+
+      <h2 style="margin-top:0">Key Reasons (max 3)</h2>
+      <ol id="reasons" class="small"></ol>
+
+      <h2>Next Checks (max 2)</h2>
+      <ul id="nextChecks" class="small"></ul>
+
+      <div class="divider"></div>
+
+      <h2>Share Summary</h2>
+      <textarea id="shareText" readonly></textarea>
+      <div class="btns">
+        <button id="copyShareBtn" type="button">Copy</button>
+        <button id="downloadInputBtn" type="button">Download Input JSON</button>
+        <button id="downloadOutputBtn" type="button">Download Output JSON</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 class="mono">Case JSON (Preview)</h2>
+      <pre class="mono" id="jsonPreview" style="white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto"></pre>
+
+      <div class="footer">
+        <b>Disclaimer:</b> ผลลัพธ์นี้เป็นการประเมินจากข้อมูลสาธารณะ ไม่ใช่คำแนะนำทางกฎหมาย การเงิน หรือการแพทย์ ผู้ใช้ต้องรับผิดชอบการตัดสินใจของตนเอง
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ---------- Utilities ----------
+  const $ = (id)=>document.getElementById(id);
+  const nowLocalISODate = ()=>{
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    const d2 = new Date(d.getTime() - off*60*1000);
+    return d2.toISOString().slice(0,10);
+  };
+  const uuid = ()=>{
+    // simple uuid-ish for demo
+    return "xxxx-xxxx-4xxx-yxxx-xxxxxx".replace(/[xy]/g, c=>{
+      const r = (Math.random()*16)|0;
+      const v = c==="x"?r:(r&0x3|0x8);
+      return v.toString(16);
+    });
+  };
+  const toast = (msg)=>{
+    const t = $("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(()=>t.style.display="none", 1600);
+  };
+  const downloadJSON = (obj, filename)=>{
+    const blob = new Blob([JSON.stringify(obj,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const sanitizeURL = (u)=>u.trim();
+  const isValidURL = (u)=>{
+    try{ new URL(u); return true; }catch{ return false; }
+  };
+
+  // ---------- State ----------
+  const state = {
+    links: [],
+    lastInput: null,
+    lastOutput: null,
+    mode: "offline_mock" // default; can be switched to API later
+  };
+
+  // ---------- UI init ----------
+  $("asOfDate").value = nowLocalISODate();
+
+  function renderLinks(){
+    const list = $("linksList");
+    list.innerHTML = "";
+    if(state.links.length === 0){
+      const p = document.createElement("div");
+      p.className = "small";
+      p.textContent = "ยังไม่มีลิงก์หลักฐาน";
+      list.appendChild(p);
+      return;
+    }
+    state.links.forEach((u, idx)=>{
+      const row = document.createElement("div");
+      row.className = "linkRow";
+      const inp = document.createElement("input");
+      inp.value = u;
+      inp.addEventListener("change", ()=>{
+        const v = sanitizeURL(inp.value);
+        state.links[idx] = v;
+        validateGate();
+      });
+      const del = document.createElement("button");
+      del.textContent = "ลบ";
+      del.className = "danger";
+      del.addEventListener("click", ()=>{
+        state.links.splice(idx,1);
+        renderLinks();
+        validateGate();
+      });
+      row.appendChild(inp);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+  renderLinks();
+
+  $("addLinkBtn").addEventListener("click", ()=>{
+    const v = sanitizeURL($("newLink").value);
+    if(!v) return;
+    if(!isValidURL(v)){ toast("ลิงก์ไม่ถูกต้อง"); return; }
+    state.links.push(v);
+    $("newLink").value = "";
+    renderLinks();
+    validateGate();
+  });
+
+  ["subjectType","title","claimText","asOfDate","quoteText"].forEach(id=>{
+    $(id).addEventListener("input", validateGate);
+  });
+  document.querySelectorAll('input[name="goal"]').forEach(r=>r.addEventListener("change", validateGate));
+  ["ackLimits","ackNoAdvice","ackNoHarass"].forEach(id=>$(id).addEventListener("change", validateGate));
+
+  $("saveBtn").addEventListener("click", ()=>{
+    const input = buildInputJSON();
+    localStorage.setItem("aegis_draft_v1", JSON.stringify(input));
+    toast("บันทึก Draft แล้ว");
+  });
+
+  $("resetBtn").addEventListener("click", ()=>{
+    if(!confirm("รีเซ็ตทั้งหมด?")) return;
+    $("subjectType").value = "news";
+    $("title").value = "";
+    $("claimText").value = "";
+    document.querySelector('input[name="goal"][value="verify"]').checked = true;
+    $("asOfDate").value = nowLocalISODate();
+    $("quoteText").value = "";
+    $("newLink").value = "";
+    state.links = [];
+    renderLinks();
+    $("ackLimits").checked = false;
+    $("ackNoAdvice").checked = false;
+    $("ackNoHarass").checked = false;
+    state.lastInput = null;
+    state.lastOutput = null;
+    renderResult(null,null);
+    validateGate();
+    toast("รีเซ็ตแล้ว");
+  });
+
+  // load draft if exists
+  (function(){
+    const raw = localStorage.getItem("aegis_draft_v1");
+    if(!raw) return;
+    try{
+      const d = JSON.parse(raw);
+      $("subjectType").value = d?.subject?.subject_type || "news";
+      $("title").value = d?.subject?.title || "";
+      $("claimText").value = d?.subject?.claim_text || "";
+      const g = d?.case?.goal || "verify";
+      const gEl = document.querySelector(`input[name="goal"][value="${g}"]`);
+      if(gEl) gEl.checked = true;
+      $("asOfDate").value = d?.case?.as_of_date_local || nowLocalISODate();
+      state.links = (d?.evidence?.links || []).map(x=>x.url).filter(Boolean);
+      renderLinks();
+      $("quoteText").value = (d?.evidence?.quotes?.[0]?.text) || "";
+      // do not auto-check policy
+      validateGate();
+      toast("โหลด Draft ล่าสุดแล้ว");
+    }catch{}
+  })();
+
+  // ---------- Policy Gate ----------
+  function validateGate(){
+    const a = $("ackLimits").checked && $("ackNoAdvice").checked && $("ackNoHarass").checked;
+    const linksCount = state.links.filter(isValidURL).length;
+    const goal = document.querySelector('input[name="goal"]:checked')?.value || "verify";
+    const subjectType = $("subjectType").value;
+
+    const flags = [];
+    if(linksCount < 1) flags.push("LOW_EVIDENCE");
+    if(goal === "predict" && (subjectType === "news" || subjectType === "social_post")) flags.push("PREDICT_MODE");
+    // simple heuristic: high impact if predict + political keywords
+    const txt = ($("title").value + " " + $("claimText").value).toLowerCase();
+    if(goal === "predict" && (txt.includes("เลือกตั้ง") || txt.includes("รัฐบาล") || txt.includes("พรรค") || txt.includes("election"))){
+      flags.push("POLITICS_HIGH_IMPACT");
+    }
+
+    const warn = $("autoWarning");
+    const ok = $("autoOk");
+    warn.style.display = "none";
+    ok.style.display = "none";
+
+    if(flags.length){
+      warn.style.display = "block";
+      const lines = [];
+      if(flags.includes("LOW_EVIDENCE")) lines.push("• หลักฐานน้อย: แนะนำใส่ลิงก์อย่างน้อย 1 แหล่ง (ไม่งั้นอาจได้ INSUFFICIENT_EVIDENCE)");
+      if(flags.includes("PREDICT_MODE")) lines.push("• โหมดคาดการณ์: ระบบจะตอบแบบความน่าจะเป็น + ความไม่แน่นอน (ไม่ฟันธง)");
+      if(flags.includes("POLITICS_HIGH_IMPACT")) lines.push("• High-impact (การเมือง/เลือกตั้ง): ต้องแสดง uncertainty และ disclaimer ชัดเป็นพิเศษ");
+      warn.textContent = lines.join("\n");
+    }else{
+      ok.style.display = "block";
+      ok.textContent = "พร้อมประเมิน: Policy Gate ผ่าน และรูปแบบข้อมูลอยู่ในเกณฑ์ดี";
+    }
+
+    $("runBtn").disabled = !a;
+  }
+
+  // ---------- Build Input JSON ----------
+  function buildInputJSON(){
+    const goal = document.querySelector('input[name="goal"]:checked')?.value || "verify";
+    const title = $("title").value.trim();
+    const claimText = $("claimText").value.trim();
+    const asOf = $("asOfDate").value || nowLocalISODate();
+
+    const txt = (title + " " + claimText).toLowerCase();
+    let risk = "low";
+    if(goal === "predict") risk = "high_impact";
+    if(txt.includes("แพทย์") || txt.includes("รักษา") || txt.includes("ยา")) risk = "high_impact";
+    if(txt.includes("ลงทุน") || txt.includes("ผลตอบแทน") || txt.includes("การันตี")) risk = "high_impact";
+
+    const links = state.links
+      .map(sanitizeURL)
+      .filter(isValidURL)
+      .map(url=>({url, label:"", source_type:"unknown"}));
+
+    const flags = [];
+    if(links.length < 1) flags.push("LOW_EVIDENCE");
+    if(goal === "predict") flags.push("PREDICT_MODE");
+    if(goal === "predict" && (txt.includes("เลือกตั้ง") || txt.includes("รัฐบาล") || txt.includes("พรรค") || txt.includes("election"))){
+      flags.push("POLITICS_HIGH_IMPACT");
+    }
+
+    const input = {
+      schema_version: "aegis_ui_input_v1.0",
+      aegis: { brand: "A.E.G.I.S", product: "A.E.G.I.S OpenTRUST" },
+      request: {
+        request_id: uuid(),
+        created_at_local: new Date().toISOString(),
+        language: "th"
+      },
+      subject: {
+        subject_type: $("subjectType").value,
+        title: title || "(untitled)",
+        claim_text: claimText || "",
+        content_excerpt: "",
+        targets: []
+      },
+      case: {
+        goal,
+        as_of_date_local: asOf,
+        jurisdiction: "TH",
+        risk_level: risk,
+        user_intent_note: ""
+      },
+      evidence: {
+        links,
+        quotes: $("quoteText").value.trim()
+          ? [{ text: $("quoteText").value.trim(), attribution: "" }]
+          : [],
+        attachments: []
+      },
+      policy_gate: {
+        acknowledged_limits: $("ackLimits").checked,
+        acknowledged_no_professional_advice: $("ackNoAdvice").checked,
+        acknowledged_no_harassment: $("ackNoHarass").checked,
+        auto_flags: flags
+      },
+      output_preferences: {
+        tone: "audit_grade",
+        max_reasons: 3,
+        max_next_checks: 2,
+        require_insufficient_evidence_when_missing_sources: true
+      }
+    };
+    return input;
+  }
+
+  // ---------- Offline Mock Evaluator ----------
+  function mockEvaluate(input){
+    const links = input.evidence.links || [];
+    const q = input.evidence.quotes || [];
+    const goal = input.case.goal;
+    const flags = input.policy_gate.auto_flags || [];
+
+    // scoring heuristic (demo only)
+    let dri = 50;
+    dri += Math.min(20, links.length * 8);
+    dri += Math.min(10, q.length * 5);
+    if(flags.includes("LOW_EVIDENCE")) dri -= 25;
+    if(flags.includes("POLITICS_HIGH_IMPACT")) dri -= 10;
+    if(goal === "predict") dri -= 8;
+
+    dri = Math.max(0, Math.min(100, dri));
+
+    let tier = "Bronze";
+    if(dri >= 80) tier = "Gold";
+    else if(dri >= 60) tier = "Silver";
+    else tier = "Bronze";
+
+    let verdict = "NEEDS_MORE_CHECKS";
+    if(links.length < 1 && input.output_preferences.require_insufficient_evidence_when_missing_sources){
+      verdict = "INSUFFICIENT_EVIDENCE";
+      dri = Math.min(dri, 38);
+      tier = "Bronze";
+    } else if(dri >= 70) verdict = "MORE_RELIABLE";
+    else if(dri >= 45) verdict = "MIXED_SIGNALS";
+    else verdict = "NOT_RECOMMENDED_YET";
+
+    const confidence = verdict === "INSUFFICIENT_EVIDENCE" ? "LOW"
+      : (dri >= 75 ? "MEDIUM" : "LOW");
+
+    const evidenceLevel = links.length >= 3 ? "MEDIUM" : (links.length >= 1 ? "WEAK" : "MISSING");
+    const freshness = "UNKNOWN"; // offline demo
+
+    const reasons = [];
+    if(verdict === "INSUFFICIENT_EVIDENCE"){
+      reasons.push("ยังไม่มีหลักฐานเพียงพอ (ลิงก์อ้างอิง/เอกสาร) เพื่อประเมินอย่างรับผิดชอบ");
+      reasons.push("ระบบหลีกเลี่ยงการฟันธงเมื่อข้อมูลไม่ครบ เพื่อคงความซื่อสัตย์ต่อความจริง");
+      reasons.push("แนะนำเพิ่มแหล่งข้อมูลที่ตรวจสอบย้อนกลับได้ก่อนทำการประเมินซ้ำ");
+    } else {
+      reasons.push(links.length >= 2 ? "มีหลักฐานอ้างอิงมากกว่า 1 แหล่ง ทำให้ตรวจสอบย้อนกลับได้" : "หลักฐานยังน้อย ทำให้ความมั่นใจต่ำ");
+      reasons.push(flags.includes("POLITICS_HIGH_IMPACT") ? "เป็นเรื่อง high-impact จึงต้องระบุความไม่แน่นอนและหลีกเลี่ยงการฟันธง" : "ยังไม่พบสัญญาณ high-impact ที่ต้องเพิ่มข้อจำกัดพิเศษ");
+      reasons.push(goal === "predict" ? "โหมดคาดการณ์จะสื่อสารเป็นความน่าจะเป็น ไม่ใช่ผลยืนยัน" : "โหมดตรวจสอบเน้นเทียบหลักฐานและความสอดคล้องของข้อมูล");
+    }
+
+    const nextChecks = [];
+    if(links.length < 3) nextChecks.push("เพิ่มหลักฐานจากแหล่งที่เป็นทางการ/เอกสารต้นทางอย่างน้อย 1–2 แหล่ง");
+    nextChecks.push("ตรวจสอบความสอดคล้องของตัวเลข/คำอ้างกับแหล่งอิสระ (cross-check)");
+
+    const output = {
+      schema_version: "aegis_output_v1.0",
+      aegis: input.aegis,
+      request_id: input.request.request_id,
+      as_of_date_local: input.case.as_of_date_local,
+      subject: input.subject,
+      verdict: {
+        code: verdict,
+        summary_th: verdictToTH(verdict),
+        confidence
+      },
+      score: { dri, tier },
+      signals: {
+        evidence_level: evidenceLevel,
+        freshness,
+        policy_flags: flags
+      },
+      reasons: reasons.slice(0, input.output_preferences.max_reasons),
+      next_checks: nextChecks.slice(0, input.output_preferences.max_next_checks),
+      disclaimer_th:
+        "ผลลัพธ์นี้เป็นการประเมินจากข้อมูลสาธารณะ ไม่ใช่คำแนะนำทางกฎหมาย การเงิน หรือการแพทย์ ผู้ใช้ต้องรับผิดชอบการตัดสินใจของตนเอง"
+    };
+
+    return output;
+  }
+
+  function verdictToTH(code){
+    switch(code){
+      case "MORE_RELIABLE": return "น่าเชื่อถือขึ้น (ยังควรตรวจซ้ำ)";
+      case "MIXED_SIGNALS": return "ข้อมูลปะปน/สัญญาณขัดกัน";
+      case "NOT_RECOMMENDED_YET": return "ยังไม่แนะนำให้เชื่อ/ใช้เป็นฐานตัดสินใจ";
+      case "INSUFFICIENT_EVIDENCE": return "หลักฐานไม่เพียงพอ";
+      default: return "ต้องตรวจเพิ่ม";
+    }
+  }
+
+  // ---------- Render Result ----------
+  function renderResult(input, output){
+    if(!input || !output){
+      $("verdictText").textContent = "—";
+      $("verdictNote").textContent = "";
+      $("driText").textContent = "—";
+      $("tierText").textContent = "";
+      $("confText").textContent = "—";
+      $("eviFreshText").textContent = "";
+      $("reasons").innerHTML = "";
+      $("nextChecks").innerHTML = "";
+      $("shareText").value = "";
+      $("jsonPreview").textContent = "";
+      $("bEvidence").textContent = "Evidence: —";
+      $("bFresh").textContent = "Freshness: —";
+      $("bPolicy").textContent = "Policy: —";
+      $("bEvidence").className = "badge";
+      $("bFresh").className = "badge";
+      $("bPolicy").className = "badge";
+      return;
+    }
+
+    const vCode = output.verdict.code;
+    const dri = output.score.dri;
+    const tier = output.score.tier;
+    const conf = output.verdict.confidence;
+
+    $("verdictText").textContent = output.verdict.summary_th;
+    $("verdictNote").textContent = `CODE: ${vCode}`;
+
+    $("driText").textContent = `${dri}/100`;
+    $("tierText").textContent = `Tier: ${tier}`;
+
+    $("confText").textContent = conf;
+    $("eviFreshText").textContent = `Evidence: ${output.signals.evidence_level} • Freshness: ${output.signals.freshness}`;
+
+    const r = $("reasons"); r.innerHTML = "";
+    (output.reasons||[]).forEach(x=>{
+      const li = document.createElement("li");
+      li.textContent = x;
+      r.appendChild(li);
+    });
+
+    const n = $("nextChecks"); n.innerHTML = "";
+    (output.next_checks||[]).forEach(x=>{
+      const li = document.createElement("li");
+      li.textContent = x;
+      n.appendChild(li);
+    });
+
+    // badges
+    $("bEvidence").textContent = `Evidence: ${output.signals.evidence_level}`;
+    $("bFresh").textContent = `Freshness: ${output.signals.freshness}`;
+    $("bPolicy").textContent = `Policy: ${ (output.signals.policy_flags||[]).length ? "FLAGS" : "OK" }`;
+
+    $("bEvidence").className = "badge " + (output.signals.evidence_level==="MISSING" ? "bad" : (output.signals.evidence_level==="WEAK" ? "warn" : "good"));
+    $("bFresh").className = "badge warn";
+    $("bPolicy").className = "badge " + ((output.signals.policy_flags||[]).length ? "warn" : "good");
+
+    // share summary
+    const links = (input.evidence.links||[]).map(x=>x.url).slice(0,3);
+    const share =
+`🛡️ A.E.G.I.S OpenTRUST — Trust Check
+หัวข้อ: ${input.subject.title}
+Goal: ${input.case.goal} • As-of: ${input.case.as_of_date_local}
+
+Verdict: ${output.verdict.summary_th}
+DRI: ${output.score.dri}/100 (${output.score.tier})
+Confidence: ${output.verdict.confidence}
+Evidence: ${output.signals.evidence_level}
+
+เหตุผลหลัก:
+- ${(output.reasons||[])[0]||"-"}
+- ${(output.reasons||[])[1]||"-"}
+- ${(output.reasons||[])[2]||"-"}
+
+Next checks:
+- ${(output.next_checks||[])[0]||"-"}
+- ${(output.next_checks||[])[1]||"-"}
+
+แหล่งอ้างอิง (บางส่วน):
+${links.map(u=>"- "+u).join("\n")}
+
+⚠️ Disclaimer: ประเมินจากข้อมูลสาธารณะ ไม่ใช่คำแนะนำทางกฎหมาย/การเงิน/การแพทย์`;
+    $("shareText").value = share;
+
+    // preview JSON
+    $("jsonPreview").textContent =
+      JSON.stringify({ input, output }, null, 2);
+  }
+
+  // ---------- Run Evaluation ----------
+  async function runEvaluation(){
+    const input = buildInputJSON();
+    state.lastInput = input;
+
+    // Offline mock (default)
+    if(state.mode === "offline_mock"){
+      const output = mockEvaluate(input);
+      state.lastOutput = output;
+      renderResult(input, output);
+      toast("ประเมินเสร็จ (Offline mock)");
+      return;
+    }
+
+    // Optional API mode (if you later build /api/evaluate)
+    const resp = await fetch("/api/evaluate", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(input)
+    });
+    if(!resp.ok){
+      toast("เรียก API ไม่สำเร็จ");
+      return;
+    }
+    const output = await resp.json();
+    state.lastOutput = output;
+    renderResult(input, output);
+    toast("ประเมินเสร็จ (API)");
+  }
+
+  $("runBtn").addEventListener("click", runEvaluation);
+
+  $("copyShareBtn").addEventListener("click", async ()=>{
+    const v = $("shareText").value;
+    if(!v) return;
+    await navigator.clipboard.writeText(v);
+    toast("คัดลอกแล้ว");
+  });
+
+  $("downloadInputBtn").addEventListener("click", ()=>{
+    if(!state.lastInput) return toast("ยังไม่มี Input");
+    downloadJSON(state.lastInput, `aegis_input_${state.lastInput.request.request_id}.json`);
+  });
+  $("downloadOutputBtn").addEventListener("click", ()=>{
+    if(!state.lastOutput) return toast("ยังไม่มี Output");
+    downloadJSON(state.lastOutput, `aegis_output_${state.lastOutput.request_id}.json`);
+  });
+
+  validateGate();
+  renderResult(null,null);
+</script>
+</body>
+</html>
